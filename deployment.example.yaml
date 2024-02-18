@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: my-apps-news-bot
-        image: python:3.12
+        image: <your image>:<your tag>
         env:
           - name: DISCORD_ID
             valueFrom:
