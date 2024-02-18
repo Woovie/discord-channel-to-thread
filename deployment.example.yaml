@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-apps-news-bot
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: my-apps-news-bot
+    spec:
+      containers:
+      - name: my-apps-news-bot
+        image: python:3.12
+        env:
+          - name: DISCORD_ID
+            valueFrom:
+              configMapKeyRef:
+                name: my-apps-config
+                key: id
+          - name: DISCORD_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: my-apps-secret
+                key: token
+          - name: DISCORD_SOURCE_GUILD
+            valueFrom:
+              configMapKeyRef:
+                name: my-apps-config
+                key: source-guild
+          - name: DISCORD_SOURCE_CHANNEL
+            valueFrom:
+              configMapKeyRef:
+                name: my-apps-config
+                key: source-channel
+          - name: DISCORD_DESTINATION_GUILD
+            valueFrom:
+              configMapKeyRef:
+                name: my-apps-config
+                key: destination-guild
+          - name: DISCORD_DESTINATION_THREAD
+            valueFrom:
+              configMapKeyRef:
+                name: my-apps-config
+                key: destination-thread
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-apps-secret
+type: Opaque
+data:
+  token: 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-apps-config
+data:
+  id: 
+  source-guild: 
+  source-channel: 
+  destination-guild: 
+  destination-thread: 
