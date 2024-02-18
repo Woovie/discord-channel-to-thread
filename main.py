@@ -9,7 +9,7 @@ from typing import Any
 
 logger = logging.getLogger('script')
 
-# From https://github.com/Rapptz/discord.py 10-59
+# From https://github.com/Rapptz/discord.py 10-71
 def is_docker() -> bool:
   path = '/proc/self/cgroup'
   return os.path.exists('/.dockerenv') or (os.path.isfile(path) and any('docker' in line for line in open(path)))
