@@ -3,11 +3,32 @@ import discord
 import pathlib
 import os
 import logging
+import sys
+from typing import Any
 
 
 logger = logging.getLogger('script')
 
-# From https://github.com/Rapptz/discord.py
+# From https://github.com/Rapptz/discord.py 10-59
+def is_docker() -> bool:
+  path = '/proc/self/cgroup'
+  return os.path.exists('/.dockerenv') or (os.path.isfile(path) and any('docker' in line for line in open(path)))
+
+def stream_supports_colour(stream: Any) -> bool:
+  is_a_tty = hasattr(stream, 'isatty') and stream.isatty()
+
+  # Pycharm and Vscode support colour in their inbuilt editors
+  if 'PYCHARM_HOSTED' in os.environ or os.environ.get('TERM_PROGRAM') == 'vscode':
+    return is_a_tty
+
+  if sys.platform != 'win32':
+    # Docker does not consistently have a tty attached to it
+    return is_a_tty or is_docker()  
+
+  # ANSICON checks for things like ConEmu
+  # WT_SESSION checks if this is Windows Terminal
+  return is_a_tty and ('ANSICON' in os.environ or 'WT_SESSION' in os.environ)
+
 class _ColourFormatter(logging.Formatter):
   LEVEL_COLOURS = [
     (logging.DEBUG, '\x1b[40;1m'),
@@ -40,7 +61,16 @@ class _ColourFormatter(logging.Formatter):
     return output
 
 handler = logging.StreamHandler()
-handler.setFormatter(_ColourFormatter())
+
+formatter = None
+
+if isinstance(handler, logging.StreamHandler) and stream_supports_colour(handler.stream):
+  formatter = _ColourFormatter()
+else:
+  dt_fmt = '%Y-%m-%d %H:%M:%S'
+  formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+
+handler.setFormatter(formatter)
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
